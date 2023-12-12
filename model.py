@@ -2,23 +2,35 @@
 # coding: utf-8
 
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 
 # Read the dataset
-df = pd.read_csv('./Dataset_T-ITS.csv', low_memory=False)
+df1 = pd.read_csv('data/F1_benign.csv', low_memory=False)
+df2 = pd.read_csv('data/F2_DOS.csv', low_memory=False)
+df3 = pd.read_csv('data/F3_Replay.csv', low_memory=False)
+df4 = pd.read_csv('data/F4_EvilTwin.csv', low_memory=False)
+df5 = pd.read_csv('data/F5_FDI.csv', low_memory=False)
 
 # Data exploration
-print(df.head())
-print(df.tail())
-print(df.info())
-print(df.describe())
-print(df.shape)
-print(df.columns)
-print(df.count())
-print(df['class'].value_counts())
-print(df.isnull().sum())
+p123 = pd.concat([df1, df2, df3], ignore_index=True)
+p45 = pd.concat([df5, df4], ignore_index=True)
+
+remove_columns_123 = [s for s in p123.columns if s not in p45.columns]
+remove_columns_45 = [s for s in p45.columns if s not in p123.columns]
+remove_columns = remove_columns_45 + remove_columns_123
+
+for col in p123.columns:
+    if col in remove_columns:
+        p123.pop(col)
+
+
+for col in p45.columns:
+    if col in remove_columns:
+        p45.pop(col)
+
+df = pd.concat([p123, p45], ignore_index=True)
 
 # Fill missing values
 df = df.fillna(method="ffill")
@@ -31,18 +43,13 @@ print(df['class'].dtypes)
 print(df.isna().any())
 print(df.duplicated())
 
-# Convert columns to numeric
-numeric_cols = ['timestamp_c', 'frame.number', 'frame.len', 'frame.protocols', 'wlan.duration', 'wlan.ra', 'wlan.ta', 'wlan.da', 'wlan.sa', 'wlan.bssid', 'wlan.frag', 'wlan.seq', 'llc.type', 'ip.hdr_len', 'ip.len', 'ip.id', 'ip.flags', 'ip.ttl', 'ip.proto', 'ip.src', 'ip.dst', 'tcp.srcport', 'tcp.dstport', 'tcp.seq_raw', 'tcp.ack_raw', 'tcp.hdr_len', 'tcp.flags', 'tcp.window_size', 'tcp.options', 'udp.srcport', 'udp.dstport', 'udp.length', 'data.data', 'data.len', 'wlan.fc.type', 'wlan.fc.subtype', 'time_since_last_packet']
-df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
-print(df.count())
-
 # Split data into train and test sets
 X = df.drop('class', axis='columns')
 y = df['class']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
 # Model training and evaluation
-clf = DecisionTreeClassifier()
+clf = GaussianNB()
 clf = clf.fit(X_train, y_train)
 
 # Predict on test dataset
