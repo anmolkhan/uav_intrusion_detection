@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import pandas as pd
-from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 
@@ -49,7 +49,7 @@ y = df['class']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
 # Model training and evaluation
-clf = GaussianNB()
+clf = DecisionTreeClassifier()
 clf = clf.fit(X_train, y_train)
 
 # Predict on test dataset
